@@ -1,14 +1,14 @@
 {
     "sonar-project.properties": {
         "path": "./sonar-project.properties",
-        "regExp": "sonar.projectVersion=v((\\d+\\.){2,3}\\d+)"
+        "regExp": "sonar.projectVersion=v((\\d+.){2,3}\\d+)"
     },
     "package.json": {
         "path": "./package.json",
-        "regExp": "\"version\": \"((\\d+\\.){2,3}\\d+)\""
+        "regExp": "\"version\": \"((\\d+.){2,3}\\d+)\""
     },
     "appCtrl.js": {
         "path": "./src/app/appCtrl.js",
-        "regExp": "version: 'v((\\d+\\.){2,3}\\d+)'"
+        "regExp": "version: 'v((\\d+.){2,3}\\d+)'"
     }
 }

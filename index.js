@@ -3,7 +3,7 @@ var fs = require('fs');
 var colors = require('colors');
 var shell = require('shelljs');
 
-const VERSION_REG_EXP = /(\d.+){2,3}\d+/;
+const VERSION_REG_EXP = /(\d\.+){2,3}\d+/;
 const READ_TPL = 'Read file: %s.\n';
 const READ_ERR_TPL = 'A Failure occured while read %s, %s.\n';
 const COMMIT_ERR = 'Git commit failed!\n';
