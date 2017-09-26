@@ -1,0 +1,27 @@
+{
+  "name": "xg-command-tag",
+  "version": "1.0.0",
+  "description": "a plugin for tagging.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xgfe/xg-command-tag.git"
+  },
+  "keywords": [
+    "fis3",
+    "xg",
+    "tag"
+  ],
+  "author": "xgfe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xgfe/xg-command-tag/issues"
+  },
+  "homepage": "https://github.com/xgfe/xg-command-tag#readme",
+  "dependencies": {
+    "shelljs": "^0.7.8"
+  }
+}
