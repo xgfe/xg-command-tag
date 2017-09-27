@@ -31,7 +31,7 @@ exports.run = function(argv, cli, env) {
     if (!shell.which('git')) {
         return fis.log.error(colors.red('Sorry, this script requires git!'));
     }
-    // 
+    // 检查tag是否符合规范
     if (!VERSION_REG_EXP.test(argv.v)) {
         return fis.log.error(colors.red(`Sorry, the tag must match with the pattern "${VERSION_REG_EXP}"!`));
     }
