@@ -22,7 +22,7 @@ exports.options = {
     '-h, --help': 'print this help message'
 };
 
-exports.run = function(argv, cli, env) {
+exports.run = function (argv, cli, env) {
     // 显示帮助信息
     if (argv.h || argv.help) {
         return cli.help(exports.name, exports.options);
@@ -55,7 +55,7 @@ exports.run = function(argv, cli, env) {
     fis.log.info(colors.green(COMMIT_SUCCESS));
 
     // git add tag
-    var gitTagCmd = `git tag -a ${argv.v} -m "${argv.v||argv.m}"`;
+    var gitTagCmd = `git tag -a ${argv.v} -m "${argv.m ? argv.v : argv.m}"`;
 
     if (shell.exec(gitTagCmd).code !== 0) {
         return fis.log.error(colors.red(TAG_ERR));
