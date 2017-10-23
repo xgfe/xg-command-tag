@@ -60,7 +60,11 @@ exports.run = function (argv, cli, env) {
     if (shell.exec(gitTagCmd).code !== 0) {
         return fis.log.error(colors.red(TAG_ERR));
     }
-    return fis.log.info(colors.green(TAG_SUCCESS));
+    fis.log.info(colors.green(TAG_SUCCESS));
+
+    // 输出git提交记录及当前所在tag
+    shell.exec('git log -1');
+    return shell.exec('git describe --tags');
 };
 
 function readWrite(filePath, regExp, tag) {
