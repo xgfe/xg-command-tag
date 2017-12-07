@@ -4,96 +4,94 @@ var colors = require('colors');
 var shell = require('shelljs');
 
 const VERSION_REG_EXP = /(\d\.+){2,3}\d+/;
-const READ_TPL = 'Read file: %s.\n';
-const READ_ERR_TPL = 'A Failure occured while read %s, %s.\n';
-const COMMIT_ERR = 'Git commit failed!\n';
-const COMMIT_SUCCESS = 'Git committed!\n';
-const TAG_ERR = 'Git tag failed!\n';
-const TAG_SUCCESS = 'Git tagged!\n';
-const WRITE_LOG_TPL = 'Added tag "%s" to file: %s.\n';
-const WRITE_ERR_TPL = 'A Failure occured while writting file %s.\n';
 
-exports.name = 'tag';
+exports.name = 'tag <tagname>';
 exports.desc = 'Tagging your project';
 exports.options = {
-    '-c <config>': 'path of the config file',
-    '-v <tagname>': 'specify the tagname',
-    '-m <message>': 'add additional message to the git tag',
-    '-h, --help': 'print this help message'
+  '-c <config>': 'path of the config file',
+  '-m <message>': 'add additional message to the git tag',
+  '-h, --help': 'print this help message'
 };
 
-exports.run = function (argv, cli, env) {
-    // 显示帮助信息
-    if (argv.h || argv.help) {
-        return cli.help(exports.name, exports.options);
+exports.run = function(argv, cli, env) {
+  // 显示帮助信息
+  if (argv.h || argv.help) {
+    return cli.help(exports.name, exports.options);
+  }
+  // 检查git
+  if (!shell.which('git')) {
+    return fis.log.error(colors.red('Sorry, this script requires git!'));
+  }
+  // 检查tag是否符合规范
+  var version = argv['_'][1];
+  if (!VERSION_REG_EXP.test(version)) {
+    return fis.log.error(colors.red(`Sorry, the tag must match with the pattern "${VERSION_REG_EXP}"!`));
+  }
+
+  var tagConfigPath = typeof argv.c === 'string' ? argv.c : '/tag.json';
+  var tagConfig = fis.util.readJSON(path.join(process.cwd(), tagConfigPath));
+
+  // 写入文件
+  var filePaths = [];
+
+  for (var key in tagConfig) {
+    if (tagConfig.hasOwnProperty(key)) {
+      var file = tagConfig[key];
+      file.path = path.join(process.cwd(), file.path);
+      filePaths.push(file.path);
+      tagFile(file.path, new RegExp(file.regExp, 'gim'), version);
     }
-    // 检查git
-    if (!shell.which('git')) {
-        return fis.log.error(colors.red('Sorry, this script requires git!'));
-    }
-    // 检查tag是否符合规范
-    if (!VERSION_REG_EXP.test(argv.v)) {
-        return fis.log.error(colors.red(`Sorry, the tag must match with the pattern "${VERSION_REG_EXP}"!`));
-    }
+  }
+  if (!filePaths.length) {
+    return fis.log.error(colors.red('Config file is invalid!\n'));
+  }
 
-    var tagConfigPath = typeof argv.c === 'string' ? argv.c : '/tag.json';
-    var tagConfig = fis.util.readJSON(path.join(process.cwd(), tagConfigPath));
+  // git 添加文件
+  if (shell.exec('git add ' + filePaths.join(' ')).code !== 0) {
+    return fis.log.error(colors.red('Git add failed!\n'));
+  }
 
-    // 写入文件
-    for (var file in tagConfig) {
-        var tmp = tagConfig[file];
-        tmp.path = path.join(process.cwd(), tmp.path);
-        var regExp = new RegExp(tmp.regExp, 'gim');
-        readWrite(tmp.path, regExp, argv.v);
-    }
+  // git 提交文件
+  if (shell.exec(`git commit -m "chore[ALL][ALL](version) release v${version}" -n`).code !== 0) {
+    return fis.log.error(colors.red('Git commit failed!\n'));
+  }
 
-    // git 提交文件修改
-    if (shell.exec('git commit -am "chore(version): change version"').code !== 0) {
-        return fis.log.error(colors.red(COMMIT_ERR));
-    }
+  // git add tag
+  var message = argv.m ? argv.m : ('v' + version);
+  var gitTagCmd = `git tag -a v${version} -m "${message}"`;
 
-    fis.log.info(colors.green(COMMIT_SUCCESS));
-
-    // git add tag
-    var gitTagCmd = `git tag -a ${argv.v} -m "${argv.m ? argv.v : argv.m}"`;
-
-    if (shell.exec(gitTagCmd).code !== 0) {
-        return fis.log.error(colors.red(TAG_ERR));
-    }
-    fis.log.info(colors.green(TAG_SUCCESS));
-
-    // 输出git提交记录及当前所在tag
-    shell.exec('git log -1');
-    return shell.exec('git describe --tags');
+  if (shell.exec(gitTagCmd).code !== 0) {
+    return fis.log.error(colors.red('Git tag failed!\n'));
+  }
+  fis.log.info(colors.green('Git tag successfully!'));
+  fis.log.info(colors.green('Current version: v' + version));
 };
-
-function readWrite(filePath, regExp, tag) {
+/**
+ * 为文件打tag
+ * @param filePath 文件路径
+ * @param regExp 匹配的正则
+ * @param tag 需要打的tag
+ */
+function tagFile(filePath, regExp, tag) {
+  try {
+    var fileContent = fs.readFileSync(filePath, 'utf8').toString();
+    var versionContent = fileContent.match(regExp)[0]
+      .replace(VERSION_REG_EXP, tag);
+    var newFileContent = fileContent.replace(regExp, versionContent);
     try {
-        var data = fs.readFileSync(filePath, 'utf8');
-        fis.log.info(colors.green(READ_TPL), filePath);
-        var fileData = data.toString();
-        var newVersionLine = fileData.match(regExp)[0]
-            .replace(VERSION_REG_EXP, tag);
-        var newFileData = fileData.replace(regExp, newVersionLine);
-        try {
-            fs.writeFileSync(filePath, newFileData);
-            return fis.log.info(
-                colors.green(WRITE_LOG_TPL),
-                tag,
-                filePath
-            );
-        } catch (err) {
-            return fis.log.error(
-                colors.red(WRITE_ERR_TPL),
-                filePath,
-                err
-            );
-        }
+      fs.writeFileSync(filePath, newFileContent, 'utf8');
     } catch (err) {
-        return fis.log.error(
-            colors.red(READ_ERR_TPL),
-            filePath,
-            err
-        );
+      fis.log.error(
+        colors.red('A Failure occured while writting file %s.\n'),
+        filePath,
+        err
+      );
     }
+  } catch (err) {
+    fis.log.error(
+      colors.red('A Failure occured while read %s, %s.\n'),
+      filePath,
+      err
+    );
+  }
 }

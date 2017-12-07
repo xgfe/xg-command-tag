@@ -1,6 +1,6 @@
 {
   "name": "xg-command-tag",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "a plugin for tagging.",
   "main": "index.js",
   "scripts": {
