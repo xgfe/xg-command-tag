@@ -3,7 +3,7 @@ xg tag pulgin, for adding tags to the project.
 
 ## use
 ```$bash
-xg tag [-c <config>] -v <tagname> [-m <message>]
+xg tag <tagname> [-m <message>] [-c <config>] 
 ```
 ## xg-command-tag config
 Add a `tag.json` file to your project workspace. In order to help you to notice the file quickly, the keys are the files' names, and the corresponding value of a key are made of two parts: a path and a regExp for the tag.
